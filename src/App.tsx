@@ -4,8 +4,8 @@ import "./App.css";
 import axios from "axios";
 import { Table, TableProps, Input, TablePaginationConfig, Alert, Button } from "antd";
 import "antd/dist/antd.css"; // style import needed
-import { LinkOutlined, SecurityScanFilled } from "@ant-design/icons";
-import { FilterValue, SorterResult } from "antd/lib/table/interface";
+import { LinkOutlined } from "@ant-design/icons";
+import { SorterResult } from "antd/lib/table/interface";
 
 const { Search } = Input;
 
