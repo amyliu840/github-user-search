@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import logo from "./logo.svg";
 import "./App.css";
 import axios from "axios";
-import { Table, TableProps } from "antd";
-import 'antd/dist/antd.css'; // style import needed
+import { Table, TableProps, Input } from "antd";
+import "antd/dist/antd.css"; // style import needed
+import { LinkOutlined } from "@ant-design/icons";
+
+const { Search } = Input;
 
 type TablePaginationPosition =
   | "topLeft"
@@ -22,17 +25,18 @@ interface DataType {
 }
 
 function App() {
-  const [count, setCount] = useState(0);
   const [data, setData] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
-  const [top, setTop] = useState<TablePaginationPosition | 'none'>('none');
-  const [bottom, setBottom] = useState<TablePaginationPosition>('bottomCenter');
+  const [top, setTop] = useState<TablePaginationPosition | "none">("none");
+  const [bottom, setBottom] = useState<TablePaginationPosition>("bottomCenter");
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = () => {
+    setLoading(true);
     axios
       .get("https://api.github.com/search/users?q=example")
       .then(function (response) {
@@ -40,72 +44,78 @@ function App() {
         console.log(response);
         setData(response.data.items);
         setTotalCount(response.data.total_count);
+        setLoading(false);
       })
       .catch(function (error) {
         // handle error
         console.log(error);
-      })
-      .then(function () {
-        // always executed
+        setLoading(false);
       });
   };
 
+  const onSearch = (value: string) => {
+    axios
+      .get(`https://api.github.com/search/users?q=${value}`)
+      .then(function (response) {
+        // handle success
+        setData(response.data.items);
+        setTotalCount(response.data.total_count);
+        setLoading(false);
+      })
+      .catch(function (error) {
+        // handle error
+        setLoading(false);
+      });    
+  };
 
-  // avatar_url: "https://avatars.githubusercontent.com/u/57936?v=4"
-  // events_url: "https://api.github.com/users/example/events{/privacy}"
-  // followers_url: "https://api.github.com/users/example/followers"
-  // following_url: "https://api.github.com/users/example/following{/other_user}"
-  // gists_url: "https://api.github.com/users/example/gists{/gist_id}"
-  // gravatar_id: ""
-  // html_url: "https://github.com/example"
-  // id: 57936
-  // login: "example"
-  // node_id: "MDQ6VXNlcjU3OTM2"
-  // organizations_url: "https://api.github.com/users/example/orgs"
-  // received_events_url: "https://api.github.com/users/example/received_events"
-  // repos_url: "https://api.github.com/users/example/repos"
-  // score: 1
-  // site_admin: false
-  // starred_url: "https://api.github.com/users/example/starred{/owner}{/repo}"
-  // subscriptions_url: "https://api.github.com/users/example/subscriptions"
-  // type: "User"
-  // url: "https://api.github.com/users/example"
   const columns = [
     {
-      title: "score",
+      title: "Profile Picture",
+      dataIndex: "avatar_url",
+      key: "avatar_url",
+      render: (_, { avatar_url }: any) => {
+        return <img src={avatar_url} width={40} height={40} />;
+      },
+    },
+    {
+      title: "User ID",
+      dataIndex: "id",
+      key: "id",
+    },
+    {
+      title: "Score",
       dataIndex: "score",
       key: "score",
     },
     {
-      title: "avatar_url",
-      dataIndex: "avatar_url",
-      key: "avatar_url",
+      title: "Repository",
+      dataIndex: "repos_url",
+      key: "repos_url",
+      render: (_, { repos_url }: any) => {
+        return (
+          <a href={repos_url} target="_blank">
+            Link
+          </a>
+        );
+      },
     },
-    // {
-    //   title: '住址',
-    //   dataIndex: 'address',
-    //   key: 'address',
-    // },
-    // {
-    //   title: '姓名',
-    //   dataIndex: 'name',
-    //   key: 'name',
-    // },
-    // {
-    //   title: '年龄',
-    //   dataIndex: 'age',
-    //   key: 'age',
-    // },
-    // {
-    //   title: '住址',
-    //   dataIndex: 'address',
-    //   key: 'address',
-    // },
+    {
+      title: "Repository",
+      dataIndex: "repos_url",
+      key: "repos_url",
+      render: (_, { repos_url }: any) => {
+        return (
+          <a href={repos_url} target="_blank">
+            <LinkOutlined />
+          </a>
+        );
+      },
+    },
   ];
 
   const tableProps: TableProps<DataType> = {
     bordered: true,
-    loading: false,
+    loading,
     // size,
     // expandable,
     // title: showTitle ? defaultTitle : undefined,
@@ -113,17 +123,26 @@ function App() {
     // footer: showfooter ? defaultFooter : undefined,
     // rowSelection,
     // scroll,
-    // tableLayout,
+    tableLayout: "fixed",
   };
 
   return (
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
-        <p>Github User Search</p>
+        <div>Github User Search</div>
       </header>
       <main>
-        <p>Total Count is: {totalCount}</p>
+        <div className="top-container">
+          <div>
+            Total Count is: <b>{totalCount}</b>
+          </div>
+          <Search
+            placeholder="input search text"
+            onSearch={onSearch}
+            enterButton
+          />
+        </div>
         <Table
           {...tableProps}
           dataSource={data}
