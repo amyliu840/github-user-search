@@ -2,11 +2,20 @@ import { useEffect, useState } from "react";
 import logo from "./logo.svg";
 import "./App.css";
 import axios from "axios";
-import { Table, TableProps, Input } from "antd";
+import { Table, TableProps, Input, TablePaginationConfig, Alert, Button } from "antd";
 import "antd/dist/antd.css"; // style import needed
-import { LinkOutlined } from "@ant-design/icons";
+import { LinkOutlined, SecurityScanFilled } from "@ant-design/icons";
+import { FilterValue, SorterResult } from "antd/lib/table/interface";
 
 const { Search } = Input;
+
+interface Params {
+  pagination?: TablePaginationConfig;
+  sorter?: SorterResult<any> | SorterResult<any>[];
+  total?: number;
+  sortField?: string;
+  sortOrder?: string;
+}
 
 type TablePaginationPosition =
   | "topLeft"
@@ -30,13 +39,20 @@ function App() {
   const [top, setTop] = useState<TablePaginationPosition | "none">("none");
   const [bottom, setBottom] = useState<TablePaginationPosition>("bottomCenter");
   const [loading, setLoading] = useState<boolean>(false);
+  const [pagination, setPagination] = useState<TablePaginationConfig>({
+    current: 1,
+    pageSize: 10,
+  });
+  const [errorText, setErrorText] = useState(undefined)
 
   useEffect(() => {
-    fetchData();
+    fetchData({pagination});
+    return () => setErrorText(undefined)
   }, []);
 
-  const fetchData = () => {
+  const fetchData = (params: Params = {}) => {
     setLoading(true);
+    setErrorText(undefined)
     axios
       .get("https://api.github.com/search/users?q=example")
       .then(function (response) {
@@ -44,6 +60,10 @@ function App() {
         console.log(response);
         setData(response.data.items);
         setTotalCount(response.data.total_count);
+        setPagination({
+          ...params.pagination,
+          total: response.data.total_count,
+        });
         setLoading(false);
       })
       .catch(function (error) {
@@ -54,6 +74,7 @@ function App() {
   };
 
   const onSearch = (value: string) => {
+    setErrorText(undefined)
     axios
       .get(`https://api.github.com/search/users?q=${value}`)
       .then(function (response) {
@@ -65,6 +86,7 @@ function App() {
       .catch(function (error) {
         // handle error
         setLoading(false);
+        setErrorText(error.message)
       });    
   };
 
@@ -116,14 +138,15 @@ function App() {
   const tableProps: TableProps<DataType> = {
     bordered: true,
     loading,
-    // size,
-    // expandable,
-    // title: showTitle ? defaultTitle : undefined,
-    // showHeader,
-    // footer: showfooter ? defaultFooter : undefined,
-    // rowSelection,
-    // scroll,
     tableLayout: "fixed",
+  };
+
+  const handleTableChange = (
+    newPagination: TablePaginationConfig,
+  ) => {
+    fetchData({
+      pagination: newPagination,
+    });
   };
 
   return (
@@ -133,6 +156,13 @@ function App() {
         <div>Github User Search</div>
       </header>
       <main>
+        {errorText && <Alert
+          message="Error Text"
+          showIcon
+          description={errorText}
+          type="error"
+          closable
+        />}
         <div className="top-container">
           <div>
             Total Count is: <b>{totalCount}</b>
@@ -147,7 +177,9 @@ function App() {
           {...tableProps}
           dataSource={data}
           columns={columns}
-          pagination={{ position: [top as TablePaginationPosition, bottom] }}
+          // pagination={{ position: [top as TablePaginationPosition, bottom] }}
+          pagination={pagination}
+          onChange={handleTableChange}
         />
       </main>
     </div>

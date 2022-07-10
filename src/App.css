@@ -38,6 +38,10 @@ main {
   color: #61dafb;
 }
 
+.ant-input-group-wrapper {
+  width: auto !important;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
