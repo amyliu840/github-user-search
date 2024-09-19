@@ -95,7 +95,7 @@ function App() {
       title: "Profile Picture",
       dataIndex: "avatar_url",
       key: "avatar_url",
-      render: (_, { avatar_url }: any) => {
+      render: (_: any, { avatar_url }: any) => {
         return <img src={avatar_url} width={40} height={40} />;
       },
     },
@@ -113,7 +113,7 @@ function App() {
       title: "Repository",
       dataIndex: "repos_url",
       key: "repos_url",
-      render: (_, { repos_url }: any) => {
+      render: (_: any, { repos_url }: any) => {
         return (
           <a href={repos_url} target="_blank">
             Link
@@ -125,7 +125,7 @@ function App() {
       title: "Repository",
       dataIndex: "repos_url",
       key: "repos_url",
-      render: (_, { repos_url }: any) => {
+      render: (_: any, { repos_url }: any) => {
         return (
           <a href={repos_url} target="_blank">
             <LinkOutlined />
