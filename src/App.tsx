@@ -2,7 +2,15 @@ import { useEffect, useState } from "react";
 import logo from "./logo.svg";
 import "./App.css";
 import axios from "axios";
-import { Table, TableProps, Input, TablePaginationConfig, Alert, Button } from "antd";
+import {
+  Table,
+  TableProps,
+  Input,
+  TablePaginationConfig,
+  Alert,
+  Button,
+  Spin,
+} from "antd";
 import "antd/dist/antd.css"; // style import needed
 import { LinkOutlined } from "@ant-design/icons";
 import { SorterResult } from "antd/lib/table/interface";
@@ -39,21 +47,23 @@ function App() {
   const [top, setTop] = useState<TablePaginationPosition | "none">("none");
   const [bottom, setBottom] = useState<TablePaginationPosition>("bottomCenter");
   const [loading, setLoading] = useState<boolean>(false);
+  const [isInitialLoading, setIsInitialLoading] = useState<boolean>(false);
   const [pagination, setPagination] = useState<TablePaginationConfig>({
     current: 1,
     pageSize: 10,
   });
-  const [errorText, setErrorText] = useState(undefined)
+  const [errorText, setErrorText] = useState(undefined);
 
   useEffect(() => {
-    fetchData({pagination});
-    return () => setErrorText(undefined)
+    setIsInitialLoading(true);
+    fetchData({ pagination }).finally(() => setIsInitialLoading(false));
+    return () => setErrorText(undefined);
   }, []);
 
   const fetchData = (params: Params = {}) => {
     setLoading(true);
-    setErrorText(undefined)
-    axios
+    setErrorText(undefined);
+    return axios
       .get("https://api.github.com/search/users?q=example")
       .then(function (response) {
         // handle success
@@ -74,7 +84,7 @@ function App() {
   };
 
   const onSearch = (value: string) => {
-    setErrorText(undefined)
+    setErrorText(undefined);
     axios
       .get(`https://api.github.com/search/users?q=${value}`)
       .then(function (response) {
@@ -86,8 +96,8 @@ function App() {
       .catch(function (error) {
         // handle error
         setLoading(false);
-        setErrorText(error.message)
-      });    
+        setErrorText(error.message);
+      });
   };
 
   const columns = [
@@ -141,9 +151,7 @@ function App() {
     tableLayout: "fixed",
   };
 
-  const handleTableChange = (
-    newPagination: TablePaginationConfig,
-  ) => {
+  const handleTableChange = (newPagination: TablePaginationConfig) => {
     fetchData({
       pagination: newPagination,
     });
@@ -156,13 +164,6 @@ function App() {
         <div>Github User Search</div>
       </header>
       <main>
-        {errorText && <Alert
-          message="Error Text"
-          showIcon
-          description={errorText}
-          type="error"
-          closable
-        />}
         <div className="top-container">
           <div>
             Total Count is: <b>{totalCount}</b>
@@ -173,14 +174,22 @@ function App() {
             enterButton
           />
         </div>
-        <Table
-          {...tableProps}
-          dataSource={data}
-          columns={columns}
-          // pagination={{ position: [top as TablePaginationPosition, bottom] }}
-          pagination={pagination}
-          onChange={handleTableChange}
-        />
+        {isInitialLoading ? (
+          <div className="loading-container">
+            <Spin size="large" />
+          </div>
+        ) : (
+          <div>
+            <Table
+              {...tableProps}
+              dataSource={data}
+              columns={columns}
+              // pagination={{ position: [top as TablePaginationPosition, bottom] }}
+              pagination={pagination}
+              onChange={handleTableChange}
+            />
+          </div>
+        )}
       </main>
     </div>
   );
