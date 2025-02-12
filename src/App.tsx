@@ -67,7 +67,6 @@ function App() {
       .get("https://api.github.com/search/users?q=example")
       .then(function (response) {
         // handle success
-        console.log(response);
         setData(response.data.items);
         setTotalCount(response.data.total_count);
         setPagination({
